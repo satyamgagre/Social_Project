@@ -1,11 +1,49 @@
 {% extends 'users/base.html' %}
+{% load static %}
+
 {% block body %}
-<h1>HOME PAGE</h1>
 
-{% for post in posts %}
-    <h1>{{ post.title }}</h1>
-    <h2>{{  post.user}}</h2>
-    <img src="{{ post.image.url }}" alt="">
-{% endfor %}
+<div class="text-center my-8">
+    <h2 class="text-3xl font-bold text-gray-800 group">
+        {% if user.is_authenticated %}
+            Posts by 
+            <span class="relative inline-block text-green-500 cursor-pointer 
+                        hover:text-pink-500 transition-all duration-300">
+            {{ user.username }}
+            <span class="absolute left-0 -bottom-1 w-0 h-0.5 bg-pink-500 
+                        transition-all duration-300 group-hover:w-full"></span>
+            </span>
+        {% else %}
+            Explore Posts
+        {% endif %}
+    </h2>
+</div>
 
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 p-5 md:p-10 max-w-7xl mx-auto">
+    {% for post in posts %}
+    <div class="rounded overflow-hidden bg-white shadow-md hover:shadow-lg transition duration-300">
+        <!-- User Info -->
+        <div class="flex items-center px-5 py-4">
+            <img class="h-10 w-10 rounded-full" src="{{ post.user.profile.photo.url }}" alt="">
+            <div class="ml-3 font-medium text-gray-800">{{ post.user.username }}</div>
+        </div>
+
+        <!-- Post Image -->
+        <img src="{{ post.image.url }}" alt="" class="w-full h-64 object-cover">
+
+        <!-- Icons -->
+        <div class="flex gap-4 px-5 py-3">
+            <img class="w-5 h-5" src="{% static 'users/images/like.png' %}" alt="Like">
+            <img class="w-5 h-5" src="{% static 'users/images/comment.png' %}" alt="Comment">
+            <img class="w-5 h-5" src="{% static 'users/images/share.png' %}" alt="Share">
+        </div>
+
+        <!-- Post Text -->
+        <div class="px-5 pb-5">
+            <div class="font-semibold text-lg text-gray-800">{{ post.title }}</div>
+            <p class="text-sm text-gray-600 mt-2">{{ post.caption }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

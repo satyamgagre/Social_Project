@@ -1,42 +1,124 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="{ mobileMenu: false, darkMode: false }" :class="{ 'dark': darkMode }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}My Website{% endblock %}</title>
+    <title>{% block title %}s8ya{% endblock %}</title>
+
+    <meta name="description" content="s8ya - A Social Media Platform to Connect and Share.">
+    <meta property="og:title" content="s8ya - Connect with Friends">
 
     <link rel="stylesheet" href="{% static 'users/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     {% block style %}{% endblock %}
 </head>
-<body>
-    <nav class="shadow-lg">
-        <div class="px-4 mx-auto">
-            <div class="flex justify-between">
-                    <!-- WEBSITE LOGO -->
-                <div>
-                    <a class="flex" href="">
-                        <img class="h-8 w-8 mr-2" src="{% static 'users/images/social.png' %}" alt="Logo">
-                        <span class="font-bold text-lg text-gray-500">s8ya </span>
-                    </a>
-                </div>
 
-                    <!-- WEBSITE ITEMS -->
-                <div class="space-x-1">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-white transition-all">
+
+    <!-- Navbar -->
+    <nav class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+
+                <!-- Logo -->
+                <a href="/" class="flex items-center">
+                    <img class="h-8 w-8 mr-2" src="{% static 'users/images/social.png' %}" alt="Logo">
+                    <span class="font-bold text-lg tracking-wide text-gray-700 dark:text-white">s8ya</span>
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="md:hidden" @click="mobileMenu = !mobileMenu">
+                    <svg class="w-6 h-6 text-gray-600 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex space-x-4 items-center">
+                    <a href="/" class="py-2 px-4 {% if request.path == '/' %}text-green-600{% else %}text-gray-600 dark:text-gray-300{% endif %} hover:text-green-500 transition">Home</a>
+                    <a href="#" class="py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-green-500 transition">Explore</a>
+
                     {% if request.user.is_authenticated %}
-                    <a class="py-4 px-2 font-bold text-gray-500" href="{% url 'logout' %}">Logout</a>
+                        <a href="#" class="flex items-center py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-pink-500 transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            New Post
+                        </a>
+                        <!-- User Avatar Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center focus:outline-none">
+                                <img src="{{ request.user.profile.avatar.url|default:'https://ui-avatars.com/api/?name='|add:request.user.username }}" alt="Avatar" class="h-8 w-8 rounded-full">
+                                <span class="ml-2 hidden md:inline text-sm">{{ request.user.username }}</span>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-700 border rounded shadow-lg py-2 z-50">
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600">Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600">Settings</a>
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-600">Logout</a>
+                            </div>
+                        </div>
                     {% else %}
-                    <a class="py-4 px-2 font-bold text-gray-500" href="{% url 'login' %}">Login</a>
+                        <a href="{% url 'login' %}" class="py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-green-500 transition">Login</a>
+                        <a href="{% url 'register' %}" class="py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-green-500 transition">Register</a>
                     {% endif %}
-                    <a class="py-4 px-2 font-bold text-gray-500" href="">Link 1</a>
-                    <a class="py-4 px-2 font-bold text-gray-500" href="">Link 2</a>
                 </div>
+            </div>
+
+            <!-- Mobile Nav -->
+            <div class="md:hidden mt-2 space-y-2" x-show="mobileMenu">
+                {% if request.user.is_authenticated %}
+                    <a href="#" class="flex items-center px-4 py-2 text-gray-700 dark:text-white hover:text-pink-500 transition">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        New Post
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-gray-700 dark:text-white">Profile</a>
+                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-red-500">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="block px-4 py-2 text-gray-700 dark:text-white">Login</a>
+                    <a href="{% url 'register' %}" class="block px-4 py-2 text-gray-700 dark:text-white">Register</a>
+                {% endif %}
+                <a href="/" class="block px-4 py-2 text-gray-700 dark:text-white">Home</a>
+                <a href="#" class="block px-4 py-2 text-gray-700 dark:text-white">Explore</a>
             </div>
         </div>
     </nav>
 
-    {% block body %}
-    {% endblock %}
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="fixed top-4 right-4 z-50 space-y-2">
+        {% for message in messages %}
+        <div class="bg-green-100 text-green-800 dark:bg-green-800 dark:text-white px-4 py-2 rounded shadow text-sm">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Dark Mode Toggle -->
+    <div class="fixed bottom-4 right-4 z-40">
+        <label class="flex items-center cursor-pointer">
+            <div class="mr-2 text-sm text-gray-700 dark:text-white">Dark Mode</div>
+            <input type="checkbox" class="hidden" @change="darkMode = !darkMode">
+            <div class="w-10 h-5 bg-gray-300 dark:bg-gray-600 rounded-full p-1 flex items-center" :class="{'justify-end': darkMode}">
+                <div class="w-4 h-4 bg-white rounded-full shadow"></div>
+            </div>
+        </label>
+    </div>
+
+    <!-- Page Content -->
+    <main class="py-6">
+        {% block body %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-sm text-gray-400 py-4 dark:text-gray-500">
+        &copy; 2025 s8ya. All rights reserved.
+    </footer>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>
