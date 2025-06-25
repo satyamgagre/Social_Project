@@ -1,24 +1,59 @@
 {% extends 'users/base.html' %}
+{% load widget_tweaks %}
 {% block title %}Register{% endblock %}
 
 {% block body %}
-    <div class="login-box">
-        <h2>Create Your Account</h2>
+<div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div class="w-full max-w-md bg-white shadow-md rounded-lg px-8 pt-6 pb-8 animate-fade-slide-up">
+
+        <h2 class="text-2xl font-bold text-center mb-6">Create Your Account</h2>
 
         {% if messages %}
-            <ul>
+            <ul class="text-green-600 mb-4">
                 {% for message in messages %}
                     <li>{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
 
+        {% if user_form.errors %}
+            <ul class="text-red-500 mb-4">
+                {% for field in user_form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+
         <form method="POST">
             {% csrf_token %}
-            {{ user_form.as_p }}
-            <input type="submit" value="Register">
+            {% for field in user_form %}
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    {% if field.errors %}
+                        {{ field|add_class:"border border-red-500 rounded w-full px-3 py-2 text-gray-700" }}
+                    {% else %}
+                        {{ field|add_class:"border rounded w-full px-3 py-2 text-gray-700" }}
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full text-white bg-green-500 py-2 rounded hover:bg-green-600 transition">
+                Register
+            </button>
         </form>
 
-        <a href="{% url 'login' %}">Already have an account? Login</a>
+        <p class="text-center text-sm mt-4">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-indigo-500 hover:underline">Login</a>
+        </p>
+
     </div>
+</div>
 {% endblock %}
