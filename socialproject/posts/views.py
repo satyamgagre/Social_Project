@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from .forms import PostCreateForm
@@ -23,12 +24,22 @@ def feed(request):
     posts = Post.objects.all()
     return render(request, 'posts/feed.html',{'posts':posts})
 
+@login_required
 def like_post(request):
-    post_id = request.POST.get('post_id')
-    post = get_object_or_404(post, id=post_id)
-    if post.liked_by.filter(id=request.user.id).exists():
-        post.liked_by.remove(request.user)
-    else:
-        post.liked_by.add(request.user)
+    if request.method == 'POST':
+        post_id = request.POST.get('post_id')
+        post = get_object_or_404(Post, id=post_id)
 
+        liked = False
+        if post.liked_by.filter(id=request.user.id).exists():
+            post.liked_by.remove(request.user)
+        else:
+            post.liked_by.add(request.user)
+            liked = True
 
+        return JsonResponse({
+            'liked': liked,
+            'likes_count': post.liked_by.count()
+        })
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
