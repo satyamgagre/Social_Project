@@ -36,11 +36,13 @@
 
                 <!-- Desktop Nav -->
                 <div class="hidden md:flex space-x-4 items-center">
-                    <a href="/" class="py-2 px-4 {% if request.path == '/' %}text-green-600{% else %}text-gray-600 dark:text-gray-300{% endif %} hover:text-green-500 transition">Home</a>
+                    <a href="{% url 'feed' %}" class="py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-green-500 transition">
+                        Home
+                    </a>                                        
                     <a href="#" class="py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-green-500 transition">Explore</a>
 
                     {% if request.user.is_authenticated %}
-                        <a href="#" class="flex items-center py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-pink-500 transition">
+                        <a href="{% url 'create' %}" class="flex items-center py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-pink-500 transition">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                             </svg>
@@ -53,7 +55,7 @@
                                 <span class="ml-2 hidden md:inline text-sm">{{ request.user.username }}</span>
                             </button>
                             <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-700 border rounded shadow-lg py-2 z-50">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600">Profile</a>
+                                <a href="http://127.0.0.1:8000/users/" class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600">Profile</a>
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600">Settings</a>
                                 <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-600">Logout</a>
                             </div>
@@ -80,8 +82,8 @@
                     <a href="{% url 'login' %}" class="block px-4 py-2 text-gray-700 dark:text-white">Login</a>
                     <a href="{% url 'register' %}" class="block px-4 py-2 text-gray-700 dark:text-white">Register</a>
                 {% endif %}
-                <a href="/" class="block px-4 py-2 text-gray-700 dark:text-white">Home</a>
-                <a href="#" class="block px-4 py-2 text-gray-700 dark:text-white">Explore</a>
+                <a href="http://127.0.0.1:8000/posts/feed" class="block px-4 py-2 text-gray-700 dark:text-white">Home</a>
+                <a href="{% url 'index' %}" class="block px-4 py-2 text-gray-700 dark:text-white">Explore</a>
             </div>
         </div>
     </nav>

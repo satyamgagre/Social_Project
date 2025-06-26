@@ -43,3 +43,4 @@ def like_post(request):
         })
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
