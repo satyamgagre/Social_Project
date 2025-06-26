@@ -2,51 +2,44 @@
 {% load static %}
 
 {% block body %}
-
 <div class="text-center my-8">
     <h2 class="text-3xl font-bold text-gray-800 group">
-        {% if user.is_authenticated %}
-            Posts by 
-            <span class="relative inline-block text-green-500 cursor-pointer 
-                        hover:text-pink-500 transition-all duration-300">
-            {{ user.username }}
-            <span class="absolute left-0 -bottom-1 w-0 h-0.5 bg-pink-500 
-                        transition-all duration-300 group-hover:w-full"></span>
-            </span>
-        {% else %}
-            Explore Posts
-        {% endif %}
+        Your <span class="text-pink-500">Feed</span>
     </h2>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 p-5 md:p-10 max-w-7xl mx-auto">
     {% for post in posts %}
     <div class="rounded overflow-hidden bg-white shadow-md hover:shadow-lg transition duration-300">
+        
         <!-- User Info -->
         <div class="flex items-center px-5 py-4">
-            <img class="h-10 w-10 rounded-full" src="{{ post.user.profile.photo.url }}" alt="">
+            <img class="h-10 w-10 rounded-full" src="{{ post.user.profile.photo.url }}" alt="User Photo">
             <div class="ml-3 font-medium text-gray-800">{{ post.user.username }}</div>
         </div>
 
         <!-- Post Image -->
         <div class="aspect-[4/5] w-full">
-            <img src="{{ post.image.url }}" alt="" class="w-full h-full object-cover rounded-t">
+            <img src="{{ post.image.url }}" alt="Post Image" class="w-full h-full object-cover rounded-t">
         </div>
-        
 
         <!-- Icons -->
         <div class="flex gap-4 px-5 py-3">
-            <img class="w-5 h-5" src="{% static 'users/images/like.png' %}" alt="Like">
+            <a id="{{ post.id }}" class="btn-like">
+                <img class="w-5 h-5" src="{% static 'users/images/like.png' %}" alt="Like">
+            </a>
             <img class="w-5 h-5" src="{% static 'users/images/comment.png' %}" alt="Comment">
             <img class="w-5 h-5" src="{% static 'users/images/share.png' %}" alt="Share">
         </div>
 
-        <!-- Post Text -->
+        <!-- Post Title & Caption -->
         <div class="px-5 pb-5">
             <div class="font-semibold text-lg text-gray-800">{{ post.title }}</div>
             <p class="text-sm text-gray-600 mt-2">{{ post.caption }}</p>
         </div>
     </div>
+    {% empty %}
+    <p class="text-center text-gray-500 col-span-full">No posts yet from users you follow.</p>
     {% endfor %}
 </div>
 {% endblock %}

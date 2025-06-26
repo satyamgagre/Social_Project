@@ -1,7 +1,8 @@
 {% extends 'users/base.html' %}
 
 {% block body %}
-<div style="max-width: 500px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; text-align: center;">
-    <h2 style="color: green;">Registration successfull</h2>
+<div class="max-w-md mx-auto mt-20 p-6 bg-white dark:bg-gray-800 shadow-lg rounded text-center">
+    <h2 class="text-green-600 text-xl font-semibold mb-4">Registration Successful</h2>
+    <p class="text-gray-600 dark:text-gray-300">You can now <a href="{% url 'login' %}" class="text-indigo-500 hover:underline">log in</a> to your account.</p>
 </div>
 {% endblock %}
