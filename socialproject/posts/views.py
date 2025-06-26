@@ -1,10 +1,11 @@
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
-from .forms import PostCreateForm
+from .forms import PostCreateForm, CommentForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
-from .models import Post
+from .models import Post, Comment
 
 @login_required
 def post_create(request):
@@ -43,4 +44,22 @@ def like_post(request):
         })
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+@require_POST
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        comment.post = post
+        comment.save()
+        return JsonResponse({
+            'success': True,
+            'comment': comment.body,
+            'user': comment.user.username,
+        })
+    return JsonResponse({'success': False, 'errors': form.errors})
 

@@ -10,7 +10,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-10 p-5 md:p-10 max-w-7xl mx-auto">
     {% for post in posts %}
-    <div class="rounded overflow-hidden bg-white shadow-md hover:shadow-lg transition duration-300">
+    <div class="rounded overflow-hidden bg-white shadow-md hover:shadow-lg transition duration-300 post" id="post-{{ post.id }}">
 
         <!-- User Info -->
         <div class="flex items-center px-5 py-4">
@@ -23,15 +23,14 @@
             <img src="{{ post.image.url }}" alt="Post Image" class="w-full h-full object-cover rounded-t">
         </div>
 
-
-
-
         <!-- Icons -->
         <div class="flex gap-4 px-5 py-3 items-center">
             <button type="button" class="btn-like cursor-pointer" data-id="{{ post.id }}">
                 <img class="w-5 h-5 like-icon" src="{% static 'users/images/like.png' %}" alt="Like">
             </button>
-            <img class="w-5 h-5" src="{% static 'users/images/comment.png' %}" alt="Comment">
+            <button type="button" class="btn-comment cursor-pointer" data-id="{{ post.id }}">
+                <img class="w-5 h-5" src="{% static 'users/images/comment.png' %}" alt="Comment">
+            </button>
             <img class="w-5 h-5" src="{% static 'users/images/share.png' %}" alt="Share">
         </div>
 
@@ -44,9 +43,28 @@
         </div>
 
         <!-- Post Title & Caption -->
-        <div class="px-5 pb-5">
+        <div class="px-5 pb-2">
             <div class="font-semibold text-lg text-gray-800">{{ post.title }}</div>
             <p class="text-sm text-gray-600 mt-2">{{ post.caption }}</p>
+        </div>
+
+        <!-- Comment Display Section -->
+        <div class="px-5 pb-2 comment-section">
+            {% for comment in post.comments.all %}
+                <p class="text-sm text-gray-700">
+                    <strong>{{ comment.user.username }}</strong>: {{ comment.body }}
+                </p>
+            {% endfor %}
+        </div>
+
+        <!-- Comment Form -->
+        <div class="px-5 pb-4 hidden comment-form" id="comment-form-{{ post.id }}">
+            <form class="comment-form-el" data-post-id="{{ post.id }}">
+                {% csrf_token %}
+                <input type="text" name="body" placeholder="Add a comment..." required
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-300">
+                <button type="submit" class="text-blue-600 text-sm mt-2">Post</button>
+            </form>
         </div>
     </div>
     {% empty %}
@@ -68,13 +86,13 @@
     }
 </style>
 
-<!-- AJAX Like Logic -->
+<!-- AJAX Like & Comment Logic -->
 <script>
     $(document).ready(function () {
+        // Like
         $('.btn-like').on('click', function () {
             const postId = $(this).data('id');
-            const button = $(this);
-            const icon = button.find('.like-icon');
+            const icon = $(this).find('.like-icon');
             const countEl = $(`.like-count[data-id="${postId}"]`);
 
             $.ajax({
@@ -86,17 +104,49 @@
                 },
                 success: function (response) {
                     if (response.liked) {
-                        icon.attr('src', "{% static 'users/images/liked.png' %}");
-                        icon.addClass('liked');
+                        icon.attr('src', "{% static 'users/images/liked.png' %}").addClass('liked');
                     } else {
-                        icon.attr('src', "{% static 'users/images/like.png' %}");
-                        icon.removeClass('liked');
+                        icon.attr('src', "{% static 'users/images/like.png' %}").removeClass('liked');
                     }
-
                     countEl.text(response.likes_count);
                 },
-                error: function (xhr, status, error) {
-                    console.error('❌ AJAX error:', error);
+                error: function () {
+                    console.error("❌ Like error");
+                }
+            });
+        });
+
+        // Toggle comment form
+        $('.btn-comment').on('click', function () {
+            const postId = $(this).data('id');
+            $(`#comment-form-${postId}`).toggleClass('hidden');
+        });
+
+        // Submit comment via AJAX
+        $('.comment-form-el').on('submit', function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const postId = form.data('post-id');
+            const input = form.find('input[name="body"]');
+            const body = input.val();
+
+            $.ajax({
+                url: `/posts/comment/${postId}/`,
+                method: 'POST',
+                data: {
+                    body: body,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        const commentHtml = `<p class="text-sm text-gray-700"><strong>${response.user}</strong>: ${response.comment}</p>`;
+                        form.closest('.post').find('.comment-section').append(commentHtml);
+                        input.val('');
+                    }
+                },
+                error: function () {
+                    alert('❌ Failed to add comment');
                 }
             });
         });

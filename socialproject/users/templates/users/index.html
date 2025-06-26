@@ -2,16 +2,13 @@
 {% load static %}
 
 {% block body %}
-
 <div class="text-center my-8">
     <h2 class="text-3xl font-bold text-gray-800 group">
         {% if user.is_authenticated %}
             Posts by 
-            <span class="relative inline-block text-green-500 cursor-pointer 
-                        hover:text-pink-500 transition-all duration-300">
-            {{ user.username }}
-            <span class="absolute left-0 -bottom-1 w-0 h-0.5 bg-pink-500 
-                        transition-all duration-300 group-hover:w-full"></span>
+            <span class="relative inline-block text-green-500 cursor-pointer hover:text-pink-500 transition-all duration-300">
+                {{ user.username }}
+                <span class="absolute left-0 -bottom-1 w-0 h-0.5 bg-pink-500 transition-all duration-300 group-hover:w-full"></span>
             </span>
         {% else %}
             Explore Posts
@@ -21,32 +18,140 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-10 p-5 md:p-10 max-w-7xl mx-auto">
     {% for post in posts %}
-    <div class="rounded overflow-hidden bg-white shadow-md hover:shadow-lg transition duration-300">
+    <div class="rounded overflow-hidden bg-white shadow-md hover:shadow-lg transition duration-300 post" id="post-{{ post.id }}">
         <!-- User Info -->
         <div class="flex items-center px-5 py-4">
-            <img class="h-10 w-10 rounded-full" src="{{ post.user.profile.photo.url }}" alt="">
+            <img class="h-10 w-10 rounded-full" src="{{ post.user.profile.photo.url }}" alt="User Photo">
             <div class="ml-3 font-medium text-gray-800">{{ post.user.username }}</div>
         </div>
 
         <!-- Post Image -->
         <div class="aspect-[4/5] w-full">
-            <img src="{{ post.image.url }}" alt="" class="w-full h-full object-cover rounded-t">
+            <img src="{{ post.image.url }}" alt="Post Image" class="w-full h-full object-cover rounded-t">
         </div>
-        
 
         <!-- Icons -->
-        <div class="flex gap-4 px-5 py-3">
-            <img class="w-5 h-5" src="{% static 'users/images/like.png' %}" alt="Like">
-            <img class="w-5 h-5" src="{% static 'users/images/comment.png' %}" alt="Comment">
+        <div class="flex gap-4 px-5 py-3 items-center">
+            <button type="button" class="btn-like cursor-pointer" data-id="{{ post.id }}">
+                <img class="w-5 h-5 like-icon" src="{% static 'users/images/like.png' %}" alt="Like">
+            </button>
+            <button type="button" class="btn-comment cursor-pointer" data-id="{{ post.id }}">
+                <img class="w-5 h-5" src="{% static 'users/images/comment.png' %}" alt="Comment">
+            </button>
             <img class="w-5 h-5" src="{% static 'users/images/share.png' %}" alt="Share">
         </div>
 
-        <!-- Post Text -->
-        <div class="px-5 pb-5">
+        <!-- Like Count -->
+        <div class="px-5 pb-2">
+            <span class="text-sm text-gray-600">
+                <span class="like-count" data-id="{{ post.id }}">{{ post.liked_by.count }}</span>
+                like{{ post.liked_by.count|pluralize }}
+            </span>
+        </div>
+
+        <!-- Post Caption -->
+        <div class="px-5 pb-2">
             <div class="font-semibold text-lg text-gray-800">{{ post.title }}</div>
             <p class="text-sm text-gray-600 mt-2">{{ post.caption }}</p>
+        </div>
+
+        <!-- Comments -->
+        <div class="px-5 pb-2 comment-section">
+            {% for comment in post.comments.all %}
+            <p class="text-sm text-gray-700">
+                <strong>{{ comment.user.username }}</strong>: {{ comment.body }}
+            </p>
+            {% endfor %}
+        </div>
+
+        <!-- Comment Form -->
+        <div class="px-5 pb-4 hidden comment-form" id="comment-form-{{ post.id }}">
+            <form class="comment-form-el" data-post-id="{{ post.id }}">
+                {% csrf_token %}
+                <input type="text" name="body" placeholder="Add a comment..." required
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-300">
+                <button type="submit" class="text-blue-600 text-sm mt-2">Post</button>
+            </form>
         </div>
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+<style>
+    .liked {
+        filter: brightness(1.3);
+        transform: scale(1.3);
+        transition: all 0.2s ease;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        // Like functionality
+        $('.btn-like').on('click', function () {
+            const postId = $(this).data('id');
+            const icon = $(this).find('.like-icon');
+            const countEl = $(`.like-count[data-id="${postId}"]`);
+
+            $.ajax({
+                url: "{% url 'like_post' %}",
+                method: 'POST',
+                data: {
+                    post_id: postId,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.liked) {
+                        icon.attr('src', "{% static 'users/images/liked.png' %}").addClass('liked');
+                    } else {
+                        icon.attr('src', "{% static 'users/images/like.png' %}").removeClass('liked');
+                    }
+                    countEl.text(response.likes_count);
+                },
+                error: function () {
+                    console.error("❌ Like error");
+                }
+            });
+        });
+
+        // Toggle comment form
+        $('.btn-comment').on('click', function () {
+            const postId = $(this).data('id');
+            $(`#comment-form-${postId}`).toggleClass('hidden');
+        });
+
+        // Submit comment via AJAX
+        $('.comment-form-el').on('submit', function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const postId = form.data('post-id');
+            const input = form.find('input[name="body"]');
+            const body = input.val();
+
+            $.ajax({
+                url: `/posts/comment/${postId}/`,
+                method: 'POST',
+                data: {
+                    body: body,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        const commentHtml = `<p class="text-sm text-gray-700"><strong>${response.user}</strong>: ${response.comment}</p>`;
+                        form.closest('.post').find('.comment-section').append(commentHtml);
+                        input.val('');
+                    }
+                },
+                error: function () {
+                    alert('❌ Failed to add comment');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

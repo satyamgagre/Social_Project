@@ -1,0 +1,20 @@
+<h3>Comments</h3>
+{% for comment in comments %}
+    <div class="p-2 border mb-2 rounded">
+        <strong>{{ comment.user.username }}</strong> said:
+        <p>{{ comment.body }}</p>
+        <small>{{ comment.created }}</small>
+    </div>
+{% empty %}
+    <p>No comments yet.</p>
+{% endfor %}
+
+{% if user.is_authenticated %}
+<form method="post" class="mt-4">
+    {% csrf_token %}
+    {{ form.body }}
+    <button type="submit">Post Comment</button>
+</form>
+{% else %}
+<p>Please <a href="{% url 'login' %}">login</a> to comment.</p>
+{% endif %}
